@@ -1,0 +1,262 @@
+//
+//  TrailTypeTableViewController.m
+//  爱上旅行
+//
+//  Created by gdy on 14-12-29.
+//  Copyright (c) 2014年 on the way. All rights reserved.
+//
+
+#import "TrailTypeTableViewController.h"
+#define identifier @"cell"
+
+@interface TrailTypeTableViewController ()
+@property(nonatomic,retain)RequestHandle* trailTypeRequest;//路线专题请求
+@property(nonatomic,assign)int is_refresh;//是刷新（1）还是加载（0）
+@property(nonatomic,retain)NSMutableArray* trailTypeArray;//路线专题数组
+@property(nonatomic,copy)NSString* cur_page;//当前页
+@end
+
+@implementation TrailTypeTableViewController
+
+-(void)dealloc
+{
+    self.superNavigationController = nil;
+    self.trailTypeArray = nil;
+    self.trailTypeRequest = nil;
+    self.cur_page = nil;
+    [super dealloc];
+}
+
+- (id)initWithStyle:(UITableViewStyle)style
+{
+    self = [super initWithStyle:style];
+    if (self) {
+        // Custom initialization
+    }
+    return self;
+}
+
+
+///数据懒加载
+-(NSMutableArray*)trailTypeArray
+{
+    if(!_trailTypeArray)
+    {
+        self.trailTypeArray = [[NSMutableArray alloc] init];
+    }
+    return _trailTypeArray;
+}
+
+
+-(void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    [self.trailTypeRequest cancelConnection];
+}
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    self.tableView.backgroundColor = [UIColor whiteColor];
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    
+    
+    //注册cell
+    [self.tableView registerClass:[CustomizeTrailTypeTableViewCell class] forCellReuseIdentifier:identifier];
+    //请求数据
+    [self requestData];
+}
+
+#pragma mark  请求数据
+-(void)requestData
+{
+    NSString* urlString = [kTypeTrail stringByAppendingFormat:@"?app_version=%@&device_type=1",App_version];
+    NSLog(@"%@",urlString);
+    _is_refresh = -1;//第一次刷新
+    self.trailTypeRequest = [[RequestHandle alloc] initWithURLString:urlString paramString:nil method:@"GET" delegate:self];
+    
+}
+
+//布局tableview
+-(void)layoutTableView
+{
+    //添加上拉刷新，下拉加载更多
+    [self.tableView addHeaderWithTarget:self action:@selector(headerRefreshing) dateKey:@"table"];
+    self.tableView.headerPullToRefreshText = @"下拉刷新";
+    self.tableView.headerReleaseToRefreshText = @"马上刷新";
+    self.tableView.headerRefreshingText = @"爱上旅行正在帮您刷新";
+
+    
+    self.tableView.showsVerticalScrollIndicator = NO;
+    self.tableView.separatorStyle=UITableViewCellSeparatorStyleNone;
+}
+
+
+#pragma mark  数据加载
+//下拉刷新
+-(void)headerRefreshing
+{
+    _is_refresh = 0;//下拉刷新
+    NSString* urlString = [kTypeTrail stringByAppendingFormat:@"?app_version=%@&device_type=1",App_version];
+    self.trailTypeRequest = [[RequestHandle alloc] initWithURLString:urlString paramString:nil method:@"GET" delegate:self];
+    
+}
+
+
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    // Return the number of sections.
+    return 1;
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 200;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    // Return the number of rows in the section.
+    return [_trailTypeArray count];
+}
+
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    CustomizeTrailTypeTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:identifier forIndexPath:indexPath];
+    
+    TrailType* trailType = [_trailTypeArray objectAtIndex:indexPath.row];
+    
+    cell.trailType = trailType;
+    
+    return cell;
+}
+
+//选中cell
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    TrailListOfTypeTableViewController* trailListOfType = [[TrailListOfTypeTableViewController alloc]init];
+    //传值    专题id
+    trailListOfType.trailTypeId = [[_trailTypeArray objectAtIndex:indexPath.row] Id];
+    //专题名称
+    trailListOfType.titleNB = [[_trailTypeArray objectAtIndex:indexPath.row] name];
+
+    //获取  scrollView 的 NC，然后push
+    
+    trailListOfType.hidesBottomBarWhenPushed = YES;//隐藏 tabBar
+    
+    [self.superNavigationController pushViewController:trailListOfType animated:YES];
+    //马上 设置回  NO
+    trailListOfType.hidesBottomBarWhenPushed = NO;
+    
+    //NSLog(@"%@,%@",trailListOfType.trailTypeId,trailListOfType.titleNB);
+    [trailListOfType release];
+    
+
+}
+
+
+
+
+-(void)requestHandle:(RequestHandle *)requestHandle requestSucceedWithData:(NSData *)data
+{
+    NSError* err = nil;
+    NSDictionary* dicWide = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&err];
+    if(err)
+    {
+        NSLog(@"数据请求错误：%@",err);
+    }
+    else if (!err && !data)
+    {
+        NSLog(@"数据没有错误，但是也没有请求到");
+    }
+    else//请求成功
+    {
+        //解析路线数组
+        NSArray* arr = [dicWide objectForKey:@"types"];
+        [self trailTypeArray];
+        if(_is_refresh == 0)//下拉刷新
+        {
+            for (int i=(int)[arr count]-1;i>=0;i--)
+            {
+                NSDictionary* dic = [arr objectAtIndex:i];//倒序获取，插入最新的
+                TrailType* trailType = [[TrailType alloc] init];
+                [trailType setValuesForKeysWithDictionary:dic];//kvc
+                if(_is_refresh == 1)//加载
+                {
+                    [self.trailTypeArray addObject:trailType];
+                }
+                else if(_is_refresh == 0)//下拉刷新
+                {
+                    int flag = 0;
+                    for (int i=0;i<_trailTypeArray.count;i++) {
+                        TrailType* t = [_trailTypeArray objectAtIndex:i];
+                        if([t.name isEqualToString:trailType.name])
+                        {
+                            flag = 1;
+                            break;
+                        }
+                        else
+                        {
+                            flag = 0;
+                        }
+                    }
+                    if(flag == 0)
+                    {
+                        [self.trailTypeArray insertObject:trailType atIndex:0];
+                    }
+                    
+                }
+                else if(_is_refresh == -1)//第一次刷新
+                {
+                    [self.trailTypeArray addObject:trailType];//添加
+                }
+                
+                
+            }
+        }
+        else//第一次，或者上拉加载
+        {
+            if(_is_refresh == -1)
+            {
+                for (NSDictionary* dic in arr) {
+                    TrailType* trailType = [[TrailType alloc] init];
+                    [trailType setValuesForKeysWithDictionary:dic];//kvc
+                    [self.trailTypeArray addObject:trailType];//添加
+                }
+                [self layoutTableView];
+            }
+            else
+            {
+                for (NSDictionary* dic in arr) {
+                    TrailType* trailType = [[TrailType alloc] init];
+                    [trailType setValuesForKeysWithDictionary:dic];//kvc
+                    [self.trailTypeArray addObject:trailType];//添加
+                }
+            }
+            
+        }
+        
+    }
+    
+    // 刷新表格
+    _is_refresh = -1;
+    [self.tableView headerEndRefreshing];
+    [self.tableView reloadData];
+}
+
+
+-(void)requestHandle:(RequestHandle *)requestHandle requestFailedWithError:(NSError *)error
+{
+    [self.trailTypeRequest cancelConnection];
+}
+
+@end

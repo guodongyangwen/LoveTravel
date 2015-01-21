@@ -1,0 +1,206 @@
+//
+//  AdverListVController.m
+//  爱上旅行
+//
+//  Created by 闪 on 14-12-26.
+//  Copyright (c) 2014年 on the way. All rights reserved.
+//
+
+#import "AdverListVController.h"
+#import "BufferingView.h"
+@interface AdverListVController ()
+@property(nonatomic,retain)UITableView *tableView;
+
+@property(nonatomic,retain)NSMutableArray *listArr;
+@property(nonatomic,retain)BufferingView *buffView;
+
+@property(nonatomic,retain)CUSFlashLabel *label;
+@property(nonatomic,retain)RequestHandle *request;
+@end
+
+@implementation AdverListVController
+
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+{
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self) {
+        // Custom initialization
+    }
+    return self;
+}
+-(void)dealloc
+{
+   
+    
+    self.url = nil;
+    self.urlId = nil;
+    self.cityTableV = nil;
+    self.accessoryView = nil;
+    self.cityArr = nil;
+    self.listArr=nil;
+    self.buffView=nil;
+    self.label=nil;
+    //self.tableView=nil;
+    [super dealloc];
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    self.view.backgroundColor=[UIColor whiteColor];
+    [self createTableView];
+    [self setNavigationBar];
+    [self requestData];
+}
+
+
+
+-(void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    //[self.request cancelConnection];
+}
+#pragma mark --请求数据--
+-(void)requestData
+{
+    //拼接参数
+    NSString *urlStr=[kAdverList stringByAppendingString:[NSString stringWithFormat:@"/%@/activities",self.urlId]];
+    self.request = [[RequestHandle alloc]initWithURLString:urlStr paramString:nil method:@"GET" delegate:self];
+}
+-(void)requestHandle:(RequestHandle *)requestHandle requestSucceedWithData:(NSData *)data
+{
+    NSArray *arr=[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
+
+
+    for (NSArray  *array in arr) {
+        NSDictionary *dic=[array firstObject];
+       
+        ActivityList *activity=[[ActivityList alloc]init];
+        [activity setValuesForKeysWithDictionary:dic];
+        
+        if (self.listArr==nil) {
+            self.listArr=[[NSMutableArray alloc]init];
+        }
+        [_listArr addObject:activity];
+       
+    }
+    
+    [self.tableView reloadData];
+    [self.buffView cancel];
+}
+
+#pragma mark --创建tableView--
+-(void)createTableView
+{
+    self.tableView=[[UITableView alloc]initWithFrame:CGRectMake(0, 0, 320, 568-64-49) style:UITableViewStylePlain];
+    self.tableView.dataSource=self;
+    self.tableView.delegate=self;
+    [self.tableView registerClass:[ActivityTableViewCell class] forCellReuseIdentifier:@"activityCell"];
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"adverCell"];
+    self.tableView.separatorStyle=UITableViewCellSeparatorStyleNone;
+    [self.view addSubview:_tableView];
+    //注册cell
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"adverCell"];
+    [self.tableView registerClass:[AdverTVCell class] forCellReuseIdentifier:@"activityCell"];
+    //缓冲视图
+    self.buffView=[[BufferingView alloc]init];
+    [self.tableView addSubview:_buffView];
+    [_buffView start];
+    [_tableView release];
+}
+#pragma mark --设置navigationBar--
+-(void)setNavigationBar
+{
+    self.navigationController.navigationBarHidden=NO;
+    self.navigationItem.rightBarButtonItem=nil;
+    //动画label
+    CUSFlashLabel* customLab = [[CUSFlashLabel alloc]initWithFrame:CGRectMake(0, 10, 50, 20)];
+    [customLab setFont:[UIFont systemFontOfSize:17]];
+    [customLab setTextColor:[UIColor colorWithRed:188 green:230 blue:80 alpha:1.0]];
+    [customLab setSpotlightColor:[UIColor blackColor]];
+    [customLab setContentMode:UIViewContentModeBottom];
+    [customLab startAnimating];
+    [customLab setText:self.title];
+    self.navigationItem.titleView = customLab;
+    
+}
+
+
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    
+    return [_listArr count];
+}
+
+
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.row==0) {
+        return 220;
+    }
+    return 260;
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    //传值
+    if (indexPath.row==0) {
+        return;
+    }
+    
+    ActivityList *activity=_listArr[indexPath.row];
+    AcDetailVController *detailVC=[[AcDetailVController alloc]init];
+    detailVC.activity=activity;
+    detailVC.urlId=activity.Id;
+    detailVC.hidesBottomBarWhenPushed=YES;
+    [self.navigationController pushViewController:detailVC animated:YES];
+    detailVC.hidesBottomBarWhenPushed=NO;
+    
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    
+    if (indexPath.row==0) {
+        UITableViewCell *cell=[tableView dequeueReusableCellWithIdentifier:@"adverCell"];
+        UIImageView *imageV=[[UIImageView alloc]init];
+        
+        [imageV sd_setImageWithURL:self.url];
+        
+        cell.backgroundView=imageV;
+        
+        cell.selectionStyle=UITableViewCellSelectionStyleNone;
+        return cell;
+    }
+    AdverTVCell *cell = [tableView dequeueReusableCellWithIdentifier:@"activityCell" forIndexPath:indexPath];
+    ActivityList *adver=_listArr[indexPath.row];
+    cell.activity=adver;
+    
+    cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    return cell;
+}
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

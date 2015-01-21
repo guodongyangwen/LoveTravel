@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>5D14A583-47AF-4D9E-8FC7-96AF4C996BB4</string>
+	<key>IDESourceControlProjectName</key>
+	<string>爱上旅行</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>EDC3C6BC-C8EA-4A7F-A6C6-A69844120D2D</key>
+		<string>svn://115.28.227.1/BJS141035/%E9%83%AD%E4%B8%9C%E6%B4%8B%E7%BB%84/%E7%88%B1%E4%B8%8A%E6%97%85%E8%A1%8C</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>爱上旅行.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>EDC3C6BC-C8EA-4A7F-A6C6-A69844120D2D</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectRepositoryRootDictionary</key>
+	<dict>
+		<key>EDC3C6BC-C8EA-4A7F-A6C6-A69844120D2D</key>
+		<string>svn://115.28.227.1</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>svn://115.28.227.1/BJS141035/%E9%83%AD%E4%B8%9C%E6%B4%8B%E7%BB%84/%E7%88%B1%E4%B8%8A%E6%97%85%E8%A1%8C/%E7%88%B1%E4%B8%8A%E6%97%85%E8%A1%8C.xcodeproj</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>EDC3C6BC-C8EA-4A7F-A6C6-A69844120D2D</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.subversion</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>EDC3C6BC-C8EA-4A7F-A6C6-A69844120D2D</string>
+			<key>IDESourceControlWCCName</key>
+			<string>爱上旅行</string>
+		</dict>
+	</array>
+</dict>
+</plist>

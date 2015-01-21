@@ -1,0 +1,57 @@
+//
+//  AboutUSViewController.m
+//  爱上旅行
+//
+//  Created by gdy on 15-1-6.
+//  Copyright (c) 2015年 on the way. All rights reserved.
+//
+
+#import "AboutUSViewController.h"
+
+@interface AboutUSViewController ()
+
+@end
+
+@implementation AboutUSViewController
+
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+{
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self) {
+        // Custom initialization
+    }
+    return self;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
+    self.ImageV.image = [UIImage imageNamed:@"appicon.png"];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)dealloc {
+    [_ImageV release];
+    [_btnPhone release];
+    [_btnEmail release];
+    [super dealloc];
+}
+//打电话
+- (IBAction)phoneHandle:(id)sender {
+    NSString* str = [NSString stringWithFormat:@"tel://%@",_btnPhone.titleLabel.text];
+    [[UIApplication sharedApplication]
+     openURL:[NSURL URLWithString:str]];
+}
+//发送邮件
+- (IBAction)emailHandle:(id)sender {
+    NSString* str = [NSString stringWithFormat:@"mailto://%@",_btnEmail.titleLabel.text];
+    [[UIApplication sharedApplication]
+     openURL:[NSURL URLWithString:str]];
+}
+@end
